@@ -13,6 +13,8 @@ import net.runelite.client.plugins.PluginDescriptor;
 import net.runelite.client.ui.overlay.OverlayManager;
 import net.runelite.client.input.MouseAdapter;
 import net.runelite.client.input.MouseManager;
+import net.runelite.api.SoundEffectID;
+import net.runelite.client.callback.ClientThread;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -26,6 +28,9 @@ public class ExamplePlugin extends Plugin
 {
 	@Inject
 	private Client client;
+
+	@Inject
+	private ClientThread clientThread;
 
 	@Inject
 	private ExampleConfig config;
@@ -43,16 +48,30 @@ public class ExamplePlugin extends Plugin
 
 	private static final Set<Integer> TOA_DOOR_IDS = new HashSet<>();
 	static {
-		TOA_DOOR_IDS.add(44549); // Entry room door
-		TOA_DOOR_IDS.add(44548); // Exit door
-		TOA_DOOR_IDS.add(44560); // Exit door
-		TOA_DOOR_IDS.add(46087); // Exit door
+		TOA_DOOR_IDS.add(44549);
+		TOA_DOOR_IDS.add(44548);
+		TOA_DOOR_IDS.add(44560);
+		TOA_DOOR_IDS.add(46087);
+		TOA_DOOR_IDS.add(46089);
+		TOA_DOOR_IDS.add(46161);
+		TOA_DOOR_IDS.add(45397);
+		TOA_DOOR_IDS.add(11831);
+		TOA_DOOR_IDS.add(46155);
+		TOA_DOOR_IDS.add(45337);
+		TOA_DOOR_IDS.add(11832);
+		TOA_DOOR_IDS.add(46164);
+		TOA_DOOR_IDS.add(45131);
+		TOA_DOOR_IDS.add(11833);
+		TOA_DOOR_IDS.add(45046);
+		TOA_DOOR_IDS.add(44558);
+		TOA_DOOR_IDS.add(11830);
 		// Add more door IDs as needed
 	}
 
 	private boolean inToa = false;
 	private boolean overrideItemWarning = false;
 	private int currentRoomId = -1;
+	private boolean overlayVisible = false;
 
 	public MouseAdapter mouseListener;
 
@@ -76,7 +95,6 @@ public class ExamplePlugin extends Plugin
 			}
 		};
 		mouseManager.registerMouseListener(mouseListener);
-		overlayManager.add(droppedItemOverlay);
 	}
 
 	@Override
@@ -136,6 +154,7 @@ public class ExamplePlugin extends Plugin
 			WorldPoint itemLocation = itemSpawned.getTile().getWorldLocation();
 			droppedItemLocations.add(itemLocation);
 			log.info("Item spawned in ToA: {} at {}", itemSpawned.getItem().getId(), itemLocation);
+			updateOverlayVisibility();
 		}
 		else
 		{
@@ -204,15 +223,35 @@ public class ExamplePlugin extends Plugin
 			}
 		}
 	}
+	private void updateOverlayVisibility()
+	{
+		if (droppedItemLocations.isEmpty())
+		{
+			hideOverlay();
+		}
+	}
+	private void playInventoryFullSound()
+	{
+		clientThread.invoke(() -> client.playSoundEffect(2277)); // 2277 is the ID for the inventory full sound
+	}
 
 	private void showOverlay()
 	{
-		overlayManager.add(droppedItemOverlay);
+		if (!overlayVisible)
+		{
+			overlayManager.add(droppedItemOverlay);
+			playInventoryFullSound();
+			overlayVisible = true;
+		}
 	}
 
 	private void hideOverlay()
 	{
-		overlayManager.remove(droppedItemOverlay);
+		if (overlayVisible)
+		{
+			overlayManager.remove(droppedItemOverlay);
+			overlayVisible = false;
+		}
 	}
 
 	private void checkIfInToa()
@@ -273,18 +312,6 @@ public class ExamplePlugin extends Plugin
 		return false;
 	}
 
-	private void checkForDroppedItems()
-	{
-		log.info("Checking for dropped items. Count: {}, inToa: {}", droppedItemLocations.size(), inToa);
-		if (!droppedItemLocations.isEmpty() && !isWarningOverridden())
-		{
-			log.info("Dropped items found!");
-			showOverlay();
-		} else {
-			log.info("No dropped items found or warning overridden.");
-			hideOverlay();
-		}
-	}
 
 	public boolean isInTOA()
 	{

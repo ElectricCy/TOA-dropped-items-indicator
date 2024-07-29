@@ -5,11 +5,9 @@ import net.runelite.client.ui.overlay.OverlayPanel;
 import net.runelite.client.ui.overlay.OverlayPosition;
 import net.runelite.client.ui.overlay.OverlayPriority;
 import net.runelite.client.ui.overlay.components.*;
-import net.runelite.client.input.MouseAdapter;
 
 import javax.inject.Inject;
 import java.awt.*;
-import java.awt.event.MouseEvent;
 
 class DroppedItemOverlay extends OverlayPanel
 {
@@ -25,7 +23,7 @@ class DroppedItemOverlay extends OverlayPanel
         this.client = client;
         this.plugin = plugin;
         this.config = config;
-        setPosition(OverlayPosition.TOP_CENTER);
+        setPosition(OverlayPosition.BOTTOM_LEFT); // Changed from TOP_CENTER to ABOVE_CHATBOX_RIGHT
         setPriority(OverlayPriority.HIGH);
     }
 
@@ -39,7 +37,7 @@ class DroppedItemOverlay extends OverlayPanel
 
         panelComponent.getChildren().clear();
         panelComponent.setBackgroundColor(new Color(255, 0, 0, 220));
-        panelComponent.setPreferredSize(new Dimension(300, 0));
+        panelComponent.setPreferredSize(new Dimension(200, 0)); // Changed from 300 to 200 to fit better over the chatbox
 
         panelComponent.getChildren().add(TitleComponent.builder()
                 .text("WARNING!")
@@ -47,12 +45,12 @@ class DroppedItemOverlay extends OverlayPanel
                 .build());
 
         panelComponent.getChildren().add(LineComponent.builder()
-                .left("You have dropped items in this room!")
+                .left("Dropped items in room!")
                 .leftColor(Color.WHITE)
                 .build());
 
         panelComponent.getChildren().add(LineComponent.builder()
-                .left("Pick up your items before leaving.")
+                .left("Pick up before leaving.")
                 .leftColor(Color.YELLOW)
                 .build());
 
